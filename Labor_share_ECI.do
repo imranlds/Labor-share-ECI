@@ -19,32 +19,22 @@ xtset ocode year
 * Taking logs and copying lables
 ********************************************************************************
 
-program define _crcslbl	/* varname varname */
-	version 6
-	args dst src
-	local w : variable label `src'
-	if `"`w'"' == "" {
-		local w "`src'"
-	}
-	label variable `dst' `"`w'"'
-end
-
-
-* Calcualte five-year averages
+* Calcualte five-year averages.
+* et the values from the middle of the period i.e. from 2010-2015 = 2013 value
 	foreach v in  pwt91_labsh pwt91_rnna eci_plus pwt91_rgdpna {
 g `v'_5y = (`v'[_n-2] + `v'[_n-1] + `v' + `v'[_n+1] + `v'[_n+2])/5
-
-_crcslbl `v'_5y `v'
+g `v'_ma = `v'_5y[_n-2]
+_crcslbl `v'_ma `v'
 	}
 	
 	* Take log of variables
-foreach v in  wdi_popden pwt91_labsh_5y {
+foreach v in  wdi_popden pwt91_labsh_ma {
 g LN_`v' = log(`v') 
 _crcslbl LN_`v' `v'
 	}
 	
-g LN_pwt_cs = log(pwt91_rnna_5y/pwt91_rgdpna_5y)	
-label var LN_pwt_cs "ln(Capital output ratio)"	
+g LN_pwt_cs_ma = log(pwt91_rnna_ma/pwt91_rgdpna_ma)	
+label var LN_pwt_cs_ma "ln(Capital output ratio)"	
 
 g invest_price = pwt91_pl_i/pwt91_pl_c
 label var invest_price "Investment price"
@@ -53,14 +43,8 @@ sort ocode year
 by ocode: g pop_gr = (pwt91_pop - pwt91_pop[_n-1])/pwt91_pop[_n-1]
 label var pop_gr "Population growth"
 
-g LN_rgdp_pc = log(pwt91_rgdpna/pwt91_pop)
+g LN_rgdp_pc = log(pwt91_rgdpna_ma/pwt91_pop)
 label var LN_rgdp_pc "ln(Real GDP p.c.)"
-
-
-* get the values from the middle of the period i.e. from 2010-2015 = 2013 value
-g LN_pwt_cs_ma = LN_pwt_cs[_n-2]
-g eci_plus_ma = eci_plus_5y[_n-2]
-g LN_pwt91_labsh_ma = LN_pwt91_labsh_5y[_n-2]
 
 drop if !(year==1970|year==1975|year==1980|year==1985|year==1990|year==1995|year==2000|year==2005|year==2010|year==2015)
 
@@ -76,14 +60,13 @@ global x1 LN_pwt_cs_ma polity2 LN_rgdp_pc
 global xlist wdi_gdpcapgr invest_price pwt91_hc wdi_gdpagr wdi_gdpind LN_wdi_popden  pop_gr wdi_inflation fi_reg dr_ig wdi_unempne ciri_assn wdi_fdiin
 
 global z1 wdi_fossil 
-global z2 wdi_enerenew
 global fe i.year
 
 * Drop variables
 drop if $ylist ==.| $x ==. | LN_pwt_cs==.| polity2==.| LN_rgdp_pc ==.
 *drop if  eci_plus<2 
 drop if pwt91_labsh_5y>0.75
-keep ocode ccodealp year region pwt91_labsh_5y income_group OECD_nonOECD $ylist $x $x1 $xlist $z1 $z2 
+keep ocode ccodealp year region pwt91_labsh_5y income_group OECD_nonOECD $ylist $x $x1 $xlist $z1 
 
 . label variable dr_ig "Globalization"
 
@@ -186,7 +169,7 @@ xi: quietly xtreg $ylist $x $x1 $fe, re
 	keep($x $x1 $xlist $z1 ) ///	
 	sortvar($x $x1 $xlist $z1 ) ///
 	addstat(R-squared, e(r2_o)) ///
-	addtext("Period effects", "Yes", "Chi-squared (Hausman test)", 49.04)	
+	addtext("Period effects", "Yes", "Chi-squared (Hausman test)", 46.67)	
 
 ********************************************************************************
 * Hausman test for fixed versus random effects model
