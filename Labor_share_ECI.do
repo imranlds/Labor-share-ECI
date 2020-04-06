@@ -212,6 +212,7 @@ global x6 dr_ig wdi_fdiin wdi_trade
     
 
 global j 4
+
 	
 	quietly xtreg $ylist $x $x1 $x2 $fe, fe 
 	outreg2 using "Tables\T$j.tex" , ///
@@ -257,9 +258,16 @@ xi: quietly xtreg $ylist $x $x1 $x6 $fe, fe
 *************Sub-sample OECD****************
 global j 5
 
-quietly xtreg $ylist $x $x1 $x2 $fe if OECD_nonOECD=="OECD", fe
+quietly xtreg $ylist $x $x1 $fe if OECD_nonOECD=="OECD", fe
 outreg2 using "Tables\T$j.tex" , ///
 	replace bdec(3) rdec(3) aster nocons label ctitle("OECD") ///
+	keep($x $x1 $xlist $z1 ) ///	
+	sortvar($x $x1 $xlist $z1 ) ///
+	addtext("Period effects", "Yes", "Country effects", "Yes")
+
+quietly xtreg $ylist $x $x1 $x2 $fe if OECD_nonOECD=="OECD", fe
+outreg2 using "Tables\T$j.tex" , ///
+	append bdec(3) rdec(3) aster nocons label ctitle("OECD") ///
 	keep($x $x1 $xlist $z1 ) ///	
 	sortvar($x $x1 $xlist $z1 ) ///
 	addtext("Period effects", "Yes", "Country effects", "Yes")
@@ -295,6 +303,13 @@ outreg2 using "Tables\T$j.tex" , ///
 
 *************Sub-sample nonOECD****************
 
+quietly xtreg $ylist $x $x1 $fe  if OECD_nonOECD!="OECD", fe
+outreg2 using "Tables\T$j.tex" , ///
+	append bdec(3) rdec(3) aster nocons label ctitle("Non-OECD") ///
+	keep($x $x1 $xlist $z1 ) ///	
+	sortvar($x $x1 $xlist $z1 ) ///
+	addtext("Period effects", "Yes", "Country effects", "Yes")
+	
 quietly xtreg $ylist $x $x1 $x2 $fe  if OECD_nonOECD!="OECD", fe
 outreg2 using "Tables\T$j.tex" , ///
 	append bdec(3) rdec(3) aster nocons label ctitle("Non-OECD") ///
@@ -329,7 +344,6 @@ outreg2 using "Tables\T$j.tex" , ///
 	keep($x $x1 $xlist $z1 ) ///	
 	sortvar($x $x1 $xlist $z1 ) ///
 	addtext("Period effects", "Yes", "Country effects", "Yes")
-
 
 	
 ********************************************************************************	
