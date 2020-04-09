@@ -110,15 +110,6 @@ set more off
 estpost corr $ylist $x $x1, matrix
 esttab . using "Tables\t_2.tex", not unstack compress noobs replace booktabs page label star b(2)
 
-
-graph twoway ///
-	(scatter pwt91_labsh_ma $x if OECD_nonOECD=="OECD", msymbol(th)) ///
-	(scatter pwt91_labsh_ma $x if OECD_nonOECD!="OECD", msymbol(o)) ///
-	|| lfit pwt91_labsh_ma $x, ///
-	legend(label(1 OECD) label(2 Non-OECD) pos(5)  ring(0) col(1)) ///
-	xtitle("Economic sophistication", size(small)) ///
-	ytitle("Labor share", size(small))
-
 ********************************************************************************
 * Table 3: Corruption economic complexity index
 ********************************************************************************
@@ -563,11 +554,66 @@ global int c.eci_plus_ma##c.pwt91_hc
 	xtitle ("Human development index", size(small))
 				
 	*graph combine name1 name2 name 3, ycommon will draw all these graphs together with y axis common
-	graph combine a b c, col(3) 
+	graph combine a b c, col(3) ycommon
 
 ********************************************************************************
-* Table 8: Graph by sub_sample
+* Graph by sub_sample
 ********************************************************************************	
+
+
+********************************************************************************
+* Graph for Chili and Malaysia
+********************************************************************************	
+
+
+xtset ocode year
+
+xtline eci_plus if ocode==152|ocode==458, overlay ///
+draw name(sub, replace) ///
+xtitle("Year", size(small)) ///
+ytitle("Labor share", size(small)) ///
+xlabel(1950(10)2020)
+
+xtline pwt91_labsh if ocode==152|ocode==458, overlay ///
+draw name(sub, replace) ///
+xtitle("Year", size(small)) ///
+ytitle("Labor share", size(small)) ///
+xlabel(1950(10)2020)
+
+graph twoway ///
+	(scatter pwt91_labsh eci_plus if ocode==152, msymbol(th)) ///
+	(scatter pwt91_labsh eci_plus if ocode==458, msymbol(o)) ///
+	|| lfit pwt91_labsh eci_plus, ///
+	legend(label(1 OECD) label(2 Non-OECD) pos(5)  ring(0) col(1)) ///
+	xtitle("Economic sophistication", size(small)) ///
+	ytitle("Labor share", size(small))
+********************************************************************************
+* Graphs
+********************************************************************************
+* Graph 1 by country average	
+collapse (mean) pwt91_labsh eci_plus,  by(ccodealp) cw
+
+graph twoway ///
+	scatter pwt91_labsh eci_plus, mlabel(ccodealp)  ///
+	|| lfit pwt91_labsh eci_plus, ///
+	legend(off) ///
+	xtitle("Economic sophistication (mean)", size(small)) ///
+	ytitle("Labor share (mean)", size(small)) 
+
+
+* Graph 2 panel data OECD and Non-OECD
+
+graph twoway ///
+	(scatter pwt91_labsh_ma $x if OECD_nonOECD=="OECD", msymbol(th)) ///
+	(scatter pwt91_labsh_ma $x if OECD_nonOECD!="OECD", msymbol(o)) ///
+	|| lfit pwt91_labsh_ma $x, ///
+	legend(label(1 OECD) label(2 Non-OECD) pos(5)  ring(0) col(1)) ///
+	xtitle("Economic sophistication", size(small)) ///
+	ytitle("Labor share", size(small))
+
+	
+* Graph 3 OECD vs. Non-OECD
+
 collapse (mean) pwt91_labsh,  by(OECD_nonOECD year) cw
 
 encode OECD_nonOECD, generate(oecd)
@@ -580,9 +626,3 @@ draw name(sub, replace) ///
 xtitle("Year", size(small)) ///
 ytitle("Labor share", size(small)) ///
 xlabel(1950(10)2020)
-
-
-
-
-
-	
